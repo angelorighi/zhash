@@ -6,14 +6,17 @@ import getopt
 import hashlib
 import zipfile
 
-VERSION = '0.2'
+VERSION = '0.3'
 
 class Zhash:
-  verbose = False
-  hash = None
-  output_file = None
+  """ Compresses a directory and calculates the sha1 hash """
   
-  def _sha1Checksum(self,filePath):
+  def __init__(self):
+    self.verbose = False
+    self.hash = None
+    self.output_file = None
+  
+  def __sha1Checksum(self,filePath):
       with open(filePath, 'rb') as fh:
           m = hashlib.sha1()
           while True:
@@ -23,7 +26,7 @@ class Zhash:
               m.update(data)
           return m.hexdigest().upper()
 
-  def _zipper(self,dir, zip_file):
+  def __zipper(self,dir, zip_file):
       zip = zipfile.ZipFile(zip_file, 'w', compression=zipfile.ZIP_DEFLATED)
       root_len = len(os.path.abspath(dir))
       for root, dirs, files in os.walk(dir):
@@ -54,8 +57,8 @@ class Zhash:
     output_hash = output_file + '.sha1'
     output_file += '.zip'
 
-    self._zipper(input_dir,output_file)
-    self.hash = self._sha1Checksum(output_file)
+    self.__zipper(input_dir,output_file)
+    self.hash = self.__sha1Checksum(output_file)
     self.file = output_file
     
     with open(output_hash, "w") as text_file:
