@@ -5,7 +5,7 @@ Compresses a directory and calculates the sha1 hash.
 
 
 Usage
-=====
+==
 
 <pre>
 Zhash v0.3: Zip & Hash a directory
