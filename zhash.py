@@ -6,7 +6,7 @@ import getopt
 import hashlib
 import zipfile
 
-VERSION = '0.3'
+VERSION = '0.4'
 
 class Zhash:
   """ Compresses a directory and calculates the sha1 hash """
@@ -15,10 +15,22 @@ class Zhash:
     self.verbose = False
     self.hash = None
     self.output_file = None
+    # 0 = SHA1; 1 = MD5
+    self.t = 0 
   
   def __sha1Checksum(self,filePath):
       with open(filePath, 'rb') as fh:
           m = hashlib.sha1()
+          while True:
+              data = fh.read(8192)
+              if not data:
+                  break
+              m.update(data)
+          return m.hexdigest().upper()
+
+  def __md5Checksum(self,filePath):
+      with open(filePath, 'rb') as fh:
+          m = hashlib.md5()
           while True:
               data = fh.read(8192)
               if not data:
@@ -54,11 +66,20 @@ class Zhash:
     if output_file == None:
       output_file = input_dir 
       
-    output_hash = output_file + '.sha1'
+    if self.t == 0:
+      output_hash = output_file + '.sha1'
+    else:
+      output_hash = output_file + '.md5'
+    
     output_file += '.zip'
 
     self.__zipper(input_dir,output_file)
-    self.hash = self.__sha1Checksum(output_file)
+
+    if self.t == 0:
+      self.hash = self.__sha1Checksum(output_file)
+    else:
+      self.hash = self.__md5Checksum(output_file)
+    
     self.file = output_file
     
     with open(output_hash, "w") as text_file:
@@ -69,6 +90,7 @@ def usage():
   print "Usage: %s -d <directory> [-v] [-h]" % script_name
   print """  -d, --directory <directory>: Directory to zip
   -o, --output <filename> (without extension): Output file
+  -t, --type Hash type: 0=SHA1, 1=MD5
   -v, --verbose: Verbosity
   -h, --help: This help
   """
@@ -77,6 +99,7 @@ def main():
     verbose = False
     input_dir = None
     output_file = None
+    t = 0
 
     print "\nZhash v%s: Zip & Hash a directory" % VERSION
 
@@ -85,8 +108,9 @@ def main():
       sys.exit(0)
     
     try:
-      options, remainder = getopt.getopt(sys.argv[1:], 'd:o:hv', ['directory=', 
+      options, remainder = getopt.getopt(sys.argv[1:], 'd:o:t:hv', ['directory=', 
                                                              'output',
+                                                             'type'
                                                              'verbose',
                                                              'help'
                                                                ])
@@ -102,6 +126,8 @@ def main():
             verbose = True
         elif opt in ('-o', '--output'):
             output_file = arg
+        elif opt in ('-t', '--type'):
+            t = int(arg)
         elif opt in ('-h', '--help'):
             usage()
             sys.exit(0)
@@ -112,6 +138,8 @@ def main():
 
     zhash = Zhash()
     zhash.verbose = verbose
+    zhash.t = t
+
     try:
       print "Wait..."
       zhash.run(input_dir,output_file)
