@@ -62,7 +62,7 @@ class Zhash:
     self.file = output_file
     
     with open(output_hash, "w") as text_file:
-      text_file.write("%s" % hash)
+      text_file.write("%s" % self.hash)
   
 def usage():
   script_name = os.path.basename(sys.argv[0])
